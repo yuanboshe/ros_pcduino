@@ -248,11 +248,24 @@ Mat_<uchar> Utility::drawHist(vector<int> hist, int height, int cellWidth)
   return histogram;
 }
 
-Mat_<float> Utility::calcWeight()
-{/*
-  int maxRange = maxZ;
-  Mat_<float> wMat(rows, cols); // weight mat
-  wMat.setTo(0);
+
+Point3f Utility::calcWeightCneter(Mat_<uint16_t> depthImg, Mat_<float>& wMat, float range[2], int minPoints, float maxWeight, int weightMarggin)
+{
+  Point3f center;
+
+  // param
+  float minRange = range[0];
+  float maxRange = range[1];
+  int rows = depthImg.rows;
+  int cols = depthImg.cols;
+  int cameraDepthMargin = 10;
+
+  // init
+  float rangeLen = maxRange - minRange;
+  assert(rangeLen > 0);
+  wMat.create(rows, cols); // weight mat
+
+  // calc weight
   float wSum = 0;
   double xSum, ySum, zSum;
   xSum = ySum = zSum = 0;
@@ -265,17 +278,56 @@ Mat_<float> Utility::calcWeight()
     {
       int z = pDepthRow[j]; // depth of current point
       double w = 0;// weight of current point
-      if (z < maxRange)// if z in the range, calc the w
+      if (z > cameraDepthMargin && z < maxRange)// if z in the range, calc the w
       {
-        w = (1 - (double)pDepthRow[j] / maxRange) * maxWeight;
-        pwMatRow[j] = w;
+        if (z < minRange) z = minRange;
+        w = (1 - (double)(z - minRange) / rangeLen) * maxWeight;
         wSum += w;
         xSum += j * w;
         ySum += i * w;
         zSum += z * w;
         pointsSum++;
       }
+      pwMatRow[j] = w;
     }
-  }*/
-  return Mat();
+  }
+
+  // calc center
+  if (pointsSum > minPoints)
+  {
+    center.x = xSum / wSum;
+    center.y = ySum / wSum;
+    center.z = zSum / wSum;
+  }
+  else
+  {
+    center = Point3f(0, 0, 0);
+  }
+
+  return center;
+}
+
+/**
+ * margin: will not calculate the depth smaller than margin
+ */
+float Utility::getMinDepth(Mat_<uint16_t> depthImg, float depthMargin)
+{
+  // param
+  int rows = depthImg.rows;
+  int cols = depthImg.cols;
+
+  // calc
+  float minDepth = 99999;
+  for (int i = 0; i < rows; i++)
+  {
+    uint16_t* pDepthRow = depthImg.ptr<uint16_t>(i);
+    for (int j = 0; j < cols; j++)
+    {
+      float depth = pDepthRow[j];
+      if (depth > depthMargin && depth < minDepth)
+        minDepth = pDepthRow[j];
+    }
+  }
+
+  return minDepth;
 }

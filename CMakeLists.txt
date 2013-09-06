@@ -78,7 +78,7 @@ add_library(csvparser src/csvparser.cpp)
 add_library(Utility src/Utility.cpp)
 
 ## Sensors
-add_executable(sonar3 src/sonar3.cpp)
+
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -86,7 +86,6 @@ add_executable(sonar3 src/sonar3.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(sr04 ${c_env_dir}/libarduino.a)
-target_link_libraries(sonar3 sr04 ${catkin_LIBRARIES})
 
 ## Nodes
 add_executable(follower node/follower.cpp)
@@ -97,6 +96,12 @@ target_link_libraries(follower Utility ${catkin_LIBRARIES})
 target_link_libraries(obstacle_avoidance Utility ${catkin_LIBRARIES})
 target_link_libraries(vel_center ${catkin_LIBRARIES})
 target_link_libraries(cmd_center csvparser ${catkin_LIBRARIES})
+
+## Test
+add_executable(test_camera test/test_camera.cpp)
+target_link_libraries(test_camera Utility ${catkin_LIBRARIES})
+add_executable(test_sonar3 test/test_sonar3.cpp)
+target_link_libraries(test_sonar3 sr04 ${catkin_LIBRARIES})
 
 #############
 ## Install ##

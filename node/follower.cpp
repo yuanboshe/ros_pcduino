@@ -12,6 +12,12 @@ using namespace cv;
 
 ros::Publisher cmdVelPub;
 bool paused; // dynamic pause or resume this program
+
+// params
+int paramMinRange, paramMaxRange;
+float paramMaxWeight;
+
+
 int goalZ, maxZ, minPoints;
 double maxLinear;
 double maxAngular;
@@ -22,13 +28,6 @@ bool isViewVideo;
 bool isSaveVideo;
 double linearSpeed = 0;
 double angularSpeed = 0;
-
-VideoWriter histWriter;
-VideoWriter depthWriter;
-VideoWriter rgbWriter;
-Size histSize(320, 240);
-Size depthSize(640, 480);
-Size rgbSize(640, 480);
 
 bool stopFlag = false;
 void commandCallback(const std_msgs::String::ConstPtr& msg)
@@ -76,44 +75,14 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
 
   try
   {
-    // weight
-    int maxRange = maxZ;
-    Mat_<float> wMat(rows, cols); // weight mat
-    wMat.setTo(0);
-    float wSum = 0;
-    double xSum, ySum, zSum;
-    xSum = ySum = zSum = 0;
-    int pointsSum = 0; // points sum which in the range
-    for (int i = 0; i < rows; i++)
-    {
-      uint16_t* pDepthRow = depthImg.ptr<uint16_t>(i);
-      float* pwMatRow = wMat.ptr<float>(i);
-      for (int j = weightMarggin; j < cols - weightMarggin; j++)
-      {
-        int z = pDepthRow[j]; // depth of current point
-        double w = 0; // weight of current point
-        if (z < maxRange) // if z in the range, calc the w
-        {
-          w = (1 - (double)pDepthRow[j] / maxRange) * maxWeight;
-          pwMatRow[j] = w;
-          wSum += w;
-          xSum += j * w;
-          ySum += i * w;
-          zSum += z * w;
-          pointsSum++;
-        }
-      }
-    }
+    // calc weight & center
+    float range[2] = {paramMinRange, paramMaxRange};
+    float maxWeight = paramMaxWeight;
+    Mat_<float> wMat;
+    Point3f center;
+    center = util.calcWeightCneter(depthImg, wMat, range, 500, maxWeight);
 
-    // control
-    float centerX = cols / 2;
-    float avX, avY, avZ;
-    if (pointsSum > minPoints)
-    {
-      avX = xSum / wSum;
-      avY = ySum / wSum;
-      avZ = zSum / wSum;
-      float linearBias = avZ - goalZ;
+   /*   float linearBias = avZ - goalZ;
       float angularBias = centerX - avX;
 
       linearSpeed = linearBias > 0 ? linearBias / (maxRange - goalZ) * maxLinear : linearBias / goalZ * maxLinear;
@@ -128,41 +97,9 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
     moveCmd.linear.x = linearSpeed;
     moveCmd.angular.z = angularSpeed;
     cmdVelPub.publish(moveCmd);
+*/
 
-    // draw depth color image
-    bool channals[3] = {true, false, false};
-    Mat depthColorImg = util.depth2Color(depthImg, 2000, channals);
 
-    // draw depth color image advance
-    float depthRange[2] = {0, 2000};
-    bool discard[2] = {false, true};
-    bool depthChannals[3] = {false, false, true};
-    Rect roiRect = Rect(weightMarggin, 0, depthColorImg.cols - 2 * weightMarggin, depthColorImg.rows);
-    Mat depthRoi = depthImg(roiRect);
-    Mat depthColorRoi = depthColorImg(roiRect);
-    util.depth2Color(depthRoi, depthColorRoi, depthRange, discard, depthChannals);
-
-    Point center((int)avX, (int)avY);
-    circle(depthColorImg, center, 6, Scalar(0, 255, 0), -1);
-
-    // put text info
-    resize(depthColorImg, depthColorImg, depthSize);
-    Point pos(20, 40);
-    Scalar textColor(0, 200, 0);
-    string text("time: ");
-    text.append(boost::lexical_cast<string>(ros::Time::now()));
-    putText(depthColorImg, text, pos, FONT_HERSHEY_SIMPLEX, 0.6, textColor);
-    pos.y += 20;
-    text = "linear: ";
-    text.append(boost::lexical_cast<string>(linearSpeed));
-    putText(depthColorImg, text, pos, FONT_HERSHEY_SIMPLEX, 0.6, textColor);
-    pos.y += 20;
-    text = "angular: ";
-    text.append(boost::lexical_cast<string>(angularSpeed));
-    putText(depthColorImg, text, pos, FONT_HERSHEY_SIMPLEX, 0.6, textColor);
-
-    imshow("center", depthColorImg);
-    waitKey(10);
 
   }
   catch (Exception& e)
