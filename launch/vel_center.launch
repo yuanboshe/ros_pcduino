@@ -1,6 +1,6 @@
 <!-- Yuanbo She, 2013.8.15 -->
 <launch>
-  <node pkg="intel_ros_vm" name="vel_center" type="vel_center" output="screen" >
+  <node pkg="ros_pcduino" name="vel_center" type="vel_center" output="screen" >
     <param name="minLinearSpeed" type="double" value="0.03" />
     <param name="minAngularSpeed" type="double" value="0.05" />
     <param name="maxLinearSpeed" type="double" value="0.5" />

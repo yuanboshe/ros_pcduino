@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 	ros::Rate loopRate(4);
 	while (ros::ok())
 	{
-		ROS_INFO("Front-left-right(cm): [%d] - [%d] - [%d]", sonars[0].Distance(), sonars[2].Distance(), sonars[1].Distance());
+		ROS_INFO("Front-left-right(cm): [%lu] - [%lu] - [%lu]", sonars[0].Distance(), sonars[2].Distance(), sonars[1].Distance());
 		ros::spinOnce();
 		loopRate.sleep();
 	}

@@ -58,9 +58,9 @@ catkin_package(
 ## Build ##
 ###########
 
-set(c_env_dir /home/ubuntu/c_enviroment)
-set(arduino_core_dir /home/ubuntu/c_enviroment/hardware/arduino/cores/arduino)
-set(arduino_variants_dir /home/ubuntu/c_enviroment/hardware/arduino/variants/sunxi)
+set(c_env_dir /home/viki/c_enviroment)
+set(arduino_core_dir ${c_env_dir}/hardware/arduino/cores/arduino)
+set(arduino_variants_dir ${c_env_dir}/hardware/arduino/variants/sunxi)
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
@@ -74,31 +74,29 @@ include_directories(include
 
 ## Declare a cpp library
 add_library(sr04 sensor/SR04.cpp)
-
 add_library(csvparser src/csvparser.cpp)
 add_library(Utility src/Utility.cpp)
 
-## Declare a cpp executable
+## Sensors
 add_executable(sonar3 src/sonar3.cpp)
-add_executable(follower3 node/follower3.cpp)
-add_executable(obstacle_avoidance node/obstacle_avoidance.cpp)
-add_executable(vel_center node/vel_center.cpp)
-add_executable(cmd_center node/cmd_center.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(ros_pcduino_node ros_pcduino_generate_messages_cpp)
+#add_dependencies(sr04 ${c_env_dir}/libarduino.a)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(sr04   ${c_env_dir}/libarduino.a)
-target_link_libraries(sonar3   ${catkin_LIBRARIES} sr04 
-)
+target_link_libraries(sr04 ${c_env_dir}/libarduino.a)
+target_link_libraries(sonar3 sr04 ${catkin_LIBRARIES})
 
-target_link_libraries(follower3 Utility ${catkin_LIBRARIES})
+## Nodes
+add_executable(follower node/follower.cpp)
+add_executable(obstacle_avoidance node/obstacle_avoidance.cpp)
+add_executable(vel_center node/vel_center.cpp)
+add_executable(cmd_center node/cmd_center.cpp)
+target_link_libraries(follower Utility ${catkin_LIBRARIES})
 target_link_libraries(obstacle_avoidance Utility ${catkin_LIBRARIES})
 target_link_libraries(vel_center ${catkin_LIBRARIES})
 target_link_libraries(cmd_center csvparser ${catkin_LIBRARIES})
-
 
 #############
 ## Install ##

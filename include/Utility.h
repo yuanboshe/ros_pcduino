@@ -13,4 +13,7 @@ public:
 	void depth2Color(Mat_<uint16_t> depth, Mat& colorImg, float range[2], bool discardOutPoint[2], bool channals[3] = NULL);
 	vector<int> calcHist(Mat_<uint16_t> img, int segments, float range[2], int* sum = 0);
 	Mat_<uchar> drawHist(vector<int> hist, int height, int cellWidth);
+
+	// pcduino_project for depth info
+	Mat_<float> calcWeight();
 };

@@ -44,9 +44,11 @@ void commandCallback(const std_msgs::String::ConstPtr& msg)
     paused = true;
   }
 }
-int countkk = 0;
+
 void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
-{ROS_INFO(" avoidance depth [%d]" , countkk++);
+{
+  if (paused)
+        return;
   // convert sensor_msgs/Image to Mat
   cv_bridge::CvImagePtr cvImgPtr;
   Mat_<uint16_t> depthImg;
@@ -80,23 +82,7 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
     Rect rightRect = Rect(rightX, rotationY, rotationWidth, rotationHeight);
     Mat leftRoi = depthImg(leftRect);
     Mat rightRoi = depthImg(rightRect);
-/*
-    // draw depth color image advance
-    Mat_<Vec3b> depthColorImg(depthImg.size());
-    depthColorImg.setTo(0);
-    float depthRange[2] = {0, 1200};
-    bool discard[2] = {false, true};
-    bool depthChannals[3] = {true, true, true};
-    util.depth2Color(depthImg, depthColorImg, depthRange, discard, depthChannals);
 
-    // draw segment
-    Mat_<int> segment(depthImg.rows, depthImg.cols);
-    segment.setTo(0);
-    segment(frontRect).setTo(1);
-    segment(leftRect).setTo(2);
-    segment(rightRect).setTo(3);
-    util.drawSegmentBorder(depthColorImg, segment, Scalar(0, 150, 150));
-*/
     // calc front info
     double avFrontDepth = maxFrontDepth;
     int frontPointSum = 0;
@@ -186,66 +172,8 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
       linearSpeed = 0;
       angularSpeed = 0;
     }
-/*
-    // put text info
-    resize(depthColorImg, depthColorImg, depthSize);
-    Point center(depthSize.width / 2, depthSize.height / 2);
-    circle(depthColorImg, center, 6, Scalar(50, 0, 50), -1);
-    Point speedPoint;
-    speedPoint.x = (1 - angularSpeed / maxAngular) * depthSize.width / 2;
-    speedPoint.y = (1 - linearSpeed / maxLinear) * depthSize.height / 2;
-    circle(depthColorImg, speedPoint, 6, Scalar(0, 255, 0), -1);
 
-    int baseLine = depthSize.height - 200;
-    int textLeftX = 10;
-    int textRightX = depthSize.width - 180;
-    int textCenterX = depthSize.width / 2 - 80;
-    int lineHeight = 20;
-    float frontSize = 0.5;
-    Point frontCenter(textCenterX, baseLine);
-    Point leftCenter(textLeftX, baseLine);
-    Point rightCenter(textRightX, baseLine);
-    Scalar textColor(0, 0, 255);
-    string text("time: ");
-    text.append(boost::lexical_cast<string>(ros::Time::now()));
-    putText(depthColorImg, text, Point(20, 40), FONT_HERSHEY_SIMPLEX, frontSize, textColor);
 
-    text = "avFrontDepth: ";
-    text.append(boost::lexical_cast<string>((int)avFrontDepth));
-    putText(depthColorImg, text, frontCenter, FONT_HERSHEY_SIMPLEX, frontSize, textColor);
-    frontCenter.y -= lineHeight;
-    text = "frontPointSum";
-    text.append(boost::lexical_cast<string>(frontPointSum));
-    putText(depthColorImg, text, frontCenter, FONT_HERSHEY_SIMPLEX, frontSize, textColor);
-
-    text = "avLeftDepth: ";
-    text.append(boost::lexical_cast<string>((int)avLeftDepth));
-    putText(depthColorImg, text, leftCenter, FONT_HERSHEY_SIMPLEX, frontSize, textColor);
-    leftCenter.y -= lineHeight;
-    text = "leftPointSum: ";
-    text.append(boost::lexical_cast<string>(leftPointSum));
-    putText(depthColorImg, text, leftCenter, FONT_HERSHEY_SIMPLEX, frontSize, textColor);
-
-    text = "avRightDepth: ";
-    text.append(boost::lexical_cast<string>((int)avRightDepth));
-    putText(depthColorImg, text, rightCenter, FONT_HERSHEY_SIMPLEX, frontSize, textColor);
-    rightCenter.y -= lineHeight;
-    text = "rightPointSum: ";
-    text.append(boost::lexical_cast<string>(rightPointSum));
-    putText(depthColorImg, text, rightCenter, FONT_HERSHEY_SIMPLEX, frontSize, textColor);
-
-    if (isViewVideo)
-    {
-      imshow("obstacle avoidance", depthColorImg);
-      waitKey(10);
-    }
-    if (isSaveVideo)
-    {
-      depthWriter << depthColorImg;
-    }
-*/
-    if (paused)
-      return;
     // pub message
     geometry_msgs::Twist moveCmd;
     moveCmd.linear.x = linearSpeed;

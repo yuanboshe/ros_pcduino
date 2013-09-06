@@ -247,3 +247,35 @@ Mat_<uchar> Utility::drawHist(vector<int> hist, int height, int cellWidth)
 
   return histogram;
 }
+
+Mat_<float> Utility::calcWeight()
+{/*
+  int maxRange = maxZ;
+  Mat_<float> wMat(rows, cols); // weight mat
+  wMat.setTo(0);
+  float wSum = 0;
+  double xSum, ySum, zSum;
+  xSum = ySum = zSum = 0;
+  int pointsSum = 0;// points sum which in the range
+  for (int i = 0; i < rows; i++)
+  {
+    uint16_t* pDepthRow = depthImg.ptr<uint16_t>(i);
+    float* pwMatRow = wMat.ptr<float>(i);
+    for (int j = weightMarggin; j < cols - weightMarggin; j++)
+    {
+      int z = pDepthRow[j]; // depth of current point
+      double w = 0;// weight of current point
+      if (z < maxRange)// if z in the range, calc the w
+      {
+        w = (1 - (double)pDepthRow[j] / maxRange) * maxWeight;
+        pwMatRow[j] = w;
+        wSum += w;
+        xSum += j * w;
+        ySum += i * w;
+        zSum += z * w;
+        pointsSum++;
+      }
+    }
+  }*/
+  return Mat();
+}
