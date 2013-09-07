@@ -11,9 +11,13 @@ int main(int argc, char **argv)
   // init ros
   ros::init(argc, argv, "sonar3");
   MyNodeHandle node;
-  ros::Publisher rangePub = node.advertise<sensor_msgs::Range>("/sonar3", 100);
+  ros::Publisher rangePubs[3];
+  rangePubs[0] = node.advertise<sensor_msgs::Range>("/sonar/front", 100);
+  rangePubs[1] = node.advertise<sensor_msgs::Range>("/sonar/left", 100);
+  rangePubs[2] = node.advertise<sensor_msgs::Range>("/sonar/right", 100);
 
   // get params
+  int rate = node.getParamEx("sonar3/rate", 10);
   int count = node.getParamEx("sonar3/count", 4);
 
   // init SR04 front-left-right
@@ -33,7 +37,7 @@ int main(int argc, char **argv)
   }
 
   // ros loop
-  ros::Rate loopRate(10);
+  ros::Rate loopRate(rate);
   while (ros::ok())
   {
     // calc avg dists
@@ -56,6 +60,11 @@ int main(int argc, char **argv)
       }
       avg -= (max + min);
       avgs[i] = avg / count;
+
+      // pub message
+      sensor_msgs::Range sonarRange;
+      sonarRange.range = avgs[i] / 100;
+      rangePubs[i].publish(sonarRange);
     }
 
     ROS_INFO("Front-left-right(cm): [%f] - [%f] - [%f]", avgs[0], avgs[1], avgs[2]);
