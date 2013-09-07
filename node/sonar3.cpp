@@ -14,7 +14,7 @@ int main(int argc, char **argv)
   ros::Publisher rangePub = node.advertise<sensor_msgs::Range>("/sonar3", 100);
 
   // get params
-  int count = node.getParamEx("sonar3/count", 5);
+  int count = node.getParamEx("sonar3/count", 4);
 
   // init SR04 front-left-right
   init();
@@ -40,9 +40,9 @@ int main(int argc, char **argv)
     float avgs[3];
     for (int i = 0; i < 3; i++)
     {
-      long min = 0, max = 999;
+      long min = 999, max = 0;
       float avg = 0;
-      std::list<int> buf = bufs[i];
+      std::list<int>& buf = bufs[i];
       buf.pop_front();
       buf.push_back(sonars[i].Distance());
       for (std::list<int>::iterator it = buf.begin(); it != buf.end(); it++)
