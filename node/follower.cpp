@@ -16,6 +16,7 @@ bool paused; // dynamic pause or resume this program
 // params
 int paramMinRange, paramMaxRange;
 float paramMaxWeight;
+int paramGoalZ;
 
 
 int goalZ, maxZ, minPoints;
@@ -82,14 +83,16 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
     Point3f center;
     center = util.calcWeightCneter(depthImg, wMat, range, 500, maxWeight);
 
-   /*   float linearBias = avZ - goalZ;
-      float angularBias = centerX - avX;
+    // control
+/*
+    float linearBias = avZ - paramX;
+    float angularBias = centerX - avX;
 
-      linearSpeed = linearBias > 0 ? linearBias / (maxRange - goalZ) * maxLinear : linearBias / goalZ * maxLinear;
-      angularSpeed = angularBias * 2 / cols * maxAngular;
+    linearSpeed = linearBias > 0 ? linearBias / (maxRange - goalZ) * maxLinear : linearBias / goalZ * maxLinear;
+    angularSpeed = angularBias * 2 / cols * maxAngular;
 
-      linearSpeed *= linearRespRate;
-      angularSpeed *= angularRespRate;
+    linearSpeed *= linearRespRate;
+    angularSpeed *= angularRespRate;
     }
 
     // pub message

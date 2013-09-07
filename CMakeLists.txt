@@ -97,6 +97,9 @@ target_link_libraries(obstacle_avoidance Utility ${catkin_LIBRARIES})
 target_link_libraries(vel_center ${catkin_LIBRARIES})
 target_link_libraries(cmd_center csvparser ${catkin_LIBRARIES})
 
+add_executable(sonar3 node/sonar3.cpp)
+target_link_libraries(sonar3 sr04 ${catkin_LIBRARIES})
+
 ## Test
 add_executable(test_camera test/test_camera.cpp)
 target_link_libraries(test_camera Utility ${catkin_LIBRARIES})
