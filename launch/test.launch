@@ -1,5 +1,5 @@
 <launch>
-  <include file="$(find ros_pcduino)/launch/vel_center.launch" />
-  <include file="$(find ros_pcduino)/launch/follower.launch" />
-  <include file="$(find ros_pcduino)/launch/obstacle_avoidance.launch" />
+  <include file="$(find ros_pcduino)/launch/include/vel_center.launch" />
+  <include file="$(find ros_pcduino)/launch/include/follower.launch" />
+  <!--<include file="$(find ros_pcduino)/launch/obstacle_avoidance.launch" />-->
 </launch>

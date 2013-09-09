@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="openni2_camera" name="asus_xtion_live" type="openni2_camera_node" output="screen" >
+  </node>
+</launch>

@@ -4,7 +4,7 @@ project(ros_pcduino)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs std_msgs cv_bridge)
+find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs std_msgs cv_bridge message_generation)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -20,11 +20,10 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs std_msgs cv_bridge)
 #######################################
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  TwistWithMask.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -34,10 +33,10 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs std_msgs cv_bridge)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -50,7 +49,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs std_msgs cv_bridge)
 catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES ros_pcduino
-#  CATKIN_DEPENDS roscpp std_msgs
+  CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 

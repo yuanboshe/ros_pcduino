@@ -17,7 +17,7 @@ int main(int argc, char **argv)
   rangePubs[2] = node.advertise<sensor_msgs::Range>("/sonar/right", 100);
 
   // get params
-  int rate = node.getParamEx("sonar3/rate", 10);
+  int rate = node.getParamEx("sonar3/rate", 6);
   int count = node.getParamEx("sonar3/count", 4);
 
   // init SR04 front-left-right

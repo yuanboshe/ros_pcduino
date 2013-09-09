@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find ros_pcduino)/launch/sensor/sonar3.launch" />
+  <include file="$(find ros_pcduino)/launch/sensor/asus_xtion_live.launch" />
+</launch>

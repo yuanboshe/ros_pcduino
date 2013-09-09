@@ -1,50 +1,131 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
+#include <ros_pcduino/TwistWithMask.h>
 #include "MyNodeHandle.h"
 #include <math.h>
 
+#define BIAS 0.000001;
+
+// params
+double paramMinLinear, paramMinAngular;
+double paramMaxLinear, paramMaxAngular;
+double paramAccelerateLinear, paramAccelerateAngular;
+
+geometry_msgs::Twist goalVel;
+geometry_msgs::Twist currentVel;
+
+bool isDiff(geometry_msgs::Twist gVel, geometry_msgs::Twist cVel)
+{
+  float min = 0.00001;
+  return fabs(gVel.linear.x - cVel.linear.x) > min || fabs(gVel.linear.y - cVel.linear.y) > min || fabs(gVel.linear.z - cVel.linear.z) > min
+      || fabs(gVel.angular.x - cVel.angular.x) > min || fabs(gVel.angular.y - cVel.angular.y) > min || fabs(gVel.angular.z - cVel.angular.z) > min;
+}
+
+void verifyGoalLinear(double& gVel)
+{
+  if (fabs(gVel) < paramMinLinear)
+    gVel = 0;
+  else if (fabs(gVel) > paramMaxLinear)
+    gVel = gVel > 0 ? paramMaxLinear : -paramMaxLinear;
+}
+
+void verifyGoalAngular(double& gVel)
+{
+  if (fabs(gVel) < paramMinAngular)
+    gVel = 0;
+  else if (fabs(gVel) > paramMaxAngular)
+    gVel = gVel > 0 ? paramMaxAngular : -paramMaxAngular;
+}
+
+void verifyGoalTwist(geometry_msgs::Twist& gVel)
+{
+  verifyGoalLinear(gVel.linear.x);
+  verifyGoalLinear(gVel.linear.y);
+  verifyGoalLinear(gVel.linear.z);
+  verifyGoalAngular(gVel.angular.x);
+  verifyGoalAngular(gVel.angular.y);
+  verifyGoalAngular(gVel.angular.z);
+}
+
+void smoothLinear(float gVel, double& cVel)
+{
+  if (cVel - gVel > paramAccelerateLinear)
+    cVel -= paramAccelerateLinear;
+  else if (gVel - cVel > paramAccelerateLinear)
+    cVel += paramAccelerateLinear;
+  else
+    cVel = gVel;
+}
+
+void smoothAngular(float gVel, double& cVel)
+{
+  if (cVel - gVel > paramAccelerateAngular)
+    cVel -= paramAccelerateAngular;
+  else if (gVel - cVel > paramAccelerateAngular)
+    cVel += paramAccelerateAngular;
+  else
+    cVel = gVel;
+}
+
+void smoothTwist(geometry_msgs::Twist gVel, geometry_msgs::Twist& cVel)
+{
+  smoothLinear(gVel.linear.x, cVel.linear.x);
+  smoothLinear(gVel.linear.y, cVel.linear.y);
+  smoothLinear(gVel.linear.z, cVel.linear.z);
+  smoothAngular(gVel.angular.x, cVel.angular.x);
+  smoothAngular(gVel.angular.y, cVel.angular.y);
+  smoothAngular(gVel.angular.z, cVel.angular.z);
+}
+
 // global speed vars
-double goalLinearSpeed = 0;
-double goalAngularSpeed = 0;
-double adjustLinearSpeed = 0;
-double adjustAngularSpeed = 0;
-double increLinearSpeed = 0;
-double increAngularSpeed = 0;
-
-void goalVelCallback(const geometry_msgs::TwistConstPtr msg)
+void goalVelCallback(const geometry_msgs::TwistConstPtr& msg)
 {
-  goalLinearSpeed = msg->linear.x;
-  goalAngularSpeed = msg->angular.z;
+  goalVel = *msg;
+  verifyGoalTwist(goalVel);
 }
 
-void goalLinearCallback(const geometry_msgs::Vector3ConstPtr msg)
+/**
+ * mask == true means ignore the item
+ */
+void goalVelWithMaskCallback(const ros_pcduino::TwistWithMaskConstPtr& msg)
 {
-  goalLinearSpeed = msg->x;
-}
-
-void goalAngularCallback(const geometry_msgs::Vector3ConstPtr msg)
-{
-  goalAngularSpeed = msg->z;
-}
-
-void adjustLinearCallback(const geometry_msgs::Vector3ConstPtr msg)
-{
-  adjustLinearSpeed = msg->x;
-}
-
-void adjustAngularCallback(const geometry_msgs::Vector3ConstPtr msg)
-{
-  adjustAngularSpeed = msg->z;
-}
-
-void increLinearCallback(const geometry_msgs::Vector3ConstPtr msg)
-{
-  increLinearSpeed = msg->x;
-}
-
-void increAngularCallback(const geometry_msgs::Vector3ConstPtr msg)
-{
-  increAngularSpeed = msg->z;
+  double tmp = 0;
+  if (!msg->mask[0])
+  {
+    tmp = msg->twist.linear.x;
+    verifyGoalLinear(tmp);
+    goalVel.linear.x = tmp;
+  }
+  if (!msg->mask[1])
+  {
+    tmp = msg->twist.linear.y;
+    verifyGoalLinear(tmp);
+    goalVel.linear.y = tmp;
+  }
+  if (!msg->mask[2])
+  {
+    tmp = msg->twist.linear.z;
+    verifyGoalLinear(tmp);
+    goalVel.linear.z = tmp;
+  }
+  if (!msg->mask[3])
+  {
+    tmp = msg->twist.angular.x;
+    verifyGoalAngular(tmp);
+    goalVel.angular.x = tmp;
+  }
+  if (!msg->mask[4])
+  {
+    tmp = msg->twist.angular.y;
+    verifyGoalAngular(tmp);
+    goalVel.angular.y = tmp;
+  }
+  if (!msg->mask[5])
+  {
+    tmp = msg->twist.angular.z;
+    verifyGoalAngular(tmp);
+    goalVel.angular.z = tmp;
+  }
 }
 
 int main(int argc, char **argv)
@@ -53,109 +134,33 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "vel_center");
   MyNodeHandle node;
   ros::Subscriber goalVelSub = node.subscribe("/goal_vel", 100, goalVelCallback);
-  ros::Subscriber goalLinearSub = node.subscribe("/goal_linear", 100, goalLinearCallback);
-  ros::Subscriber goalAngularSub = node.subscribe("/goal_angular", 100, goalAngularCallback);
-  ros::Subscriber adjustLinearSub = node.subscribe("/adjust_linear", 100, adjustLinearCallback);
-  ros::Subscriber adjustAngularSub = node.subscribe("/adjust_angular", 100, adjustAngularCallback);
-  ros::Subscriber increLinearSub = node.subscribe("/incre_linear", 100, increLinearCallback);
-  ros::Subscriber increAngularSub = node.subscribe("/incre_angular", 100, increAngularCallback);
+  ros::Subscriber goalLinearSub = node.subscribe("/goal_vel_mask", 100, goalVelWithMaskCallback);
   ros::Publisher cmdVelPub = node.advertise<geometry_msgs::Twist>("/cmd_vel", 100);
 
   // get params
-  double minLinearSpeed = node.getParamEx("vel_center/minLinearSpeed", 0.03);
-  double minAngularSpeed = node.getParamEx("vel_center/minAngularSpeed", 0.15);
-  double maxLinearSpeed = node.getParamEx("vel_center/maxLinearSpeed", 0.5);
-  double maxAngularSpeed = node.getParamEx("vel_center/maxAngularSpeed", 2.5);
-  double minAdjustLinear = node.getParamEx("vel_center/minAdjustLinear", 0.02);
-  double minAdjustAngular = node.getParamEx("vel_center/minAdjustAngular", 0.04);
-  double maxAdjustLinear = node.getParamEx("vel_center/maxAdjustLinear", 0.4);
-  double maxAdjustAngular = node.getParamEx("vel_center/maxAdjustAngular", 1.5);
-  double linearAccelerate = node.getParamEx("vel_center/linearAccelerate", 0.25); // num / s
-  double angularAccelerate = node.getParamEx("vel_center/angularAccelerate", 1); // num / s
+  paramMinLinear = node.getParamEx("vel_center/minLinear", 0.03);
+  paramMinAngular = node.getParamEx("vel_center/minAngular", 0.15);
+  paramMaxLinear = node.getParamEx("vel_center/maxLinear", 0.5);
+  paramMaxAngular = node.getParamEx("vel_center/maxAngular", 2.5);
+  paramAccelerateLinear = node.getParamEx("vel_center/accelerateLinear", 0.25); // num / s
+  paramAccelerateAngular = node.getParamEx("vel_center/accelerateAngular", 1); // num / s
   int rate = node.getParamEx("vel_center/rate", 10);
 
   // start pub loop
   ros::Rate loopRate(rate);
-  double linearSpeed = 0; // current speed
-  double angularSpeed = 0; // current speed
-  double calcLinearSpeed = 0; // goal speed after adjust
-  double calcAngularSpeed = 0; // goal speed after adjust
-  linearAccelerate /= rate; // accelerate limit per loop
-  angularAccelerate /= rate; // accelerate limit per loop
+  paramAccelerateLinear /= rate; // accelerate limit per loop
+  paramAccelerateAngular /= rate; // accelerate limit per loop
   while (ros::ok())
   {
-    // calc adjust speed
-    adjustLinearSpeed += increLinearSpeed;
-    adjustAngularSpeed += increAngularSpeed;
-    increLinearSpeed = 0;
-    increAngularSpeed = 0;
+    if (isDiff(goalVel, currentVel))
+    {
+      smoothTwist(goalVel, currentVel);
+      // pub msg
+      cmdVelPub.publish(currentVel);
 
-    // calc last goal linear speed
-    if (fabs(adjustLinearSpeed) < minAdjustLinear || fabs(goalLinearSpeed) < minLinearSpeed)
-    {
-      calcLinearSpeed = goalLinearSpeed;
+      ROS_INFO("goal: l[%.3f][%.3f][%.3f] a[%.3f][%.3f][%.3f]", goalVel.linear.x, goalVel.linear.y, goalVel.linear.z, goalVel.angular.x, goalVel.angular.y, goalVel.angular.z);
+      ROS_INFO("real: l[%.3f][%.3f][%.3f] a[%.3f][%.3f][%.3f]", currentVel.linear.x, currentVel.linear.y, currentVel.linear.z, currentVel.angular.x, currentVel.angular.y, currentVel.angular.z);
     }
-    else if (adjustLinearSpeed > 0) // increase speed
-    {
-      if (adjustLinearSpeed > maxAdjustLinear) adjustLinearSpeed = maxAdjustLinear;
-      calcLinearSpeed = goalLinearSpeed + (goalLinearSpeed > 0 ? adjustLinearSpeed : -adjustLinearSpeed);
-    }
-    else // decrease speed
-    {
-      if (-adjustLinearSpeed > maxAdjustLinear) adjustLinearSpeed = -maxAdjustLinear;
-      if (fabs(goalLinearSpeed) - fabs(adjustLinearSpeed) < minLinearSpeed) calcLinearSpeed = minLinearSpeed;
-      else calcLinearSpeed = goalLinearSpeed + adjustLinearSpeed;
-    }
-
-    // calc last goal angular speed
-    if (fabs(adjustAngularSpeed) < minAdjustAngular || fabs(goalAngularSpeed) < minAngularSpeed)
-    {
-      calcAngularSpeed = goalAngularSpeed;
-    }
-    else if (adjustAngularSpeed > 0) // increase speed
-    {
-      if (adjustAngularSpeed > maxAdjustAngular) adjustAngularSpeed = maxAdjustAngular;
-      calcAngularSpeed = goalAngularSpeed + (goalAngularSpeed > 0 ? adjustAngularSpeed : -adjustAngularSpeed);
-    }
-    else // decrease speed
-    {
-      if (-adjustAngularSpeed > maxAdjustAngular) adjustAngularSpeed = -maxAdjustAngular;
-      if (fabs(goalAngularSpeed) - fabs(adjustAngularSpeed) < minAngularSpeed) calcAngularSpeed = minAngularSpeed;
-      else calcAngularSpeed = goalAngularSpeed + adjustAngularSpeed;
-    }
-
-    // verify the max speed
-    if (calcLinearSpeed > maxLinearSpeed || calcLinearSpeed < -maxLinearSpeed)
-    {
-      ROS_WARN("Goal linear speed is too high: [%f]", calcLinearSpeed);
-      calcLinearSpeed = calcLinearSpeed > 0 ? maxLinearSpeed : -maxLinearSpeed;
-    }
-    if (calcAngularSpeed > maxAngularSpeed || calcAngularSpeed < -maxAngularSpeed)
-    {
-      ROS_WARN("Goal angular speed is too high: [%f]", calcAngularSpeed);
-      calcAngularSpeed = calcAngularSpeed > 0 ? maxAngularSpeed : -maxAngularSpeed;
-    }
-
-    // smooth speed change
-    if (calcLinearSpeed - linearSpeed > linearAccelerate)
-      linearSpeed += linearAccelerate;
-    else if (linearSpeed - calcLinearSpeed > linearAccelerate)
-      linearSpeed -= linearAccelerate;
-    else
-      linearSpeed = calcLinearSpeed;
-    if (calcAngularSpeed - angularSpeed > angularAccelerate)
-      angularSpeed += angularAccelerate;
-    else if (angularSpeed - calcAngularSpeed > angularAccelerate)
-      angularSpeed -= angularAccelerate;
-    else
-      angularSpeed = calcAngularSpeed;
-
-    // pub msg
-    geometry_msgs::Twist cmdVel;
-    cmdVel.linear.x = linearSpeed;
-    cmdVel.angular.z = angularSpeed;
-    cmdVelPub.publish(cmdVel);
-    //ROS_INFO("linear: [%f] angular: [%f]", linearSpeed, angularSpeed);
 
     ros::spinOnce();
     loopRate.sleep();

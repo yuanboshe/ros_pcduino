@@ -149,10 +149,6 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
     linearSpeed = linearBiasDepth > 0 ? (linearBiasDepth / maxFrontDepth) * maxLinear : linearBiasDepth / goalFrontDepth * maxLinear;
     if (linearBiasDepth > 0.05)
     {
-//      double reLeftSpeed = (1 - avLeftDepth / maxRotationDepth) * maxAngularSpeed;
-//      double reRightSpeed = (1 - avRightDepth / maxRotationDepth) * maxAngularSpeed;
-//      angularSpeed = reRightSpeed - reLeftSpeed;
-      //angularSpeed = (avLeftDepth - avRightDepth) / maxRotationDepth * maxAngular;
       if (avLeftDepth < avRightDepth)
       angularSpeed = -(1 - avLeftDepth / maxRotationDepth) * maxAngular;
       else angularSpeed = (1 - avRightDepth / maxRotationDepth) * maxAngular;

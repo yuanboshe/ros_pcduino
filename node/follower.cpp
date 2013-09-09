@@ -2,6 +2,7 @@
 #include <std_msgs/String.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/Range.h>
 #include <geometry_msgs/Twist.h>
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/opencv.hpp>
@@ -11,24 +12,13 @@
 using namespace cv;
 
 ros::Publisher cmdVelPub;
-bool paused; // dynamic pause or resume this program
 
 // params
+bool paused; // dynamic pause or resume this program
 int paramMinRange, paramMaxRange;
-float paramMaxWeight;
-int paramGoalZ;
-
-
-int goalZ, maxZ, minPoints;
-double maxLinear;
-double maxAngular;
-double linearRespRate, angularRespRate;
-double maxWeight;
-int weightMarggin;
-bool isViewVideo;
-bool isSaveVideo;
-double linearSpeed = 0;
-double angularSpeed = 0;
+double paramMaxWeight;
+int paramGoalZ, paramMinPoints;
+double paramMaxLinear, paramMaxAngular;
 
 bool stopFlag = false;
 void commandCallback(const std_msgs::String::ConstPtr& msg)
@@ -50,6 +40,24 @@ void commandCallback(const std_msgs::String::ConstPtr& msg)
       stopFlag = false;
     }
   }
+}
+
+float frontRange = 0;
+void frontCallback(const sensor_msgs::RangeConstPtr& msg)
+{
+  frontRange = msg->range;
+}
+
+float leftRange = 0;
+void leftCallback(const sensor_msgs::RangeConstPtr& msg)
+{
+  leftRange = msg->range;
+}
+
+float rightRange = 0;
+void rightCallback(const sensor_msgs::RangeConstPtr& msg)
+{
+  rightRange = msg->range;
 }
 
 void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
@@ -78,32 +86,28 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
   {
     // calc weight & center
     float range[2] = {paramMinRange, paramMaxRange};
-    float maxWeight = paramMaxWeight;
     Mat_<float> wMat;
     Point3f center;
-    center = util.calcWeightCneter(depthImg, wMat, range, 500, maxWeight);
+    center = util.calcWeightCneter(depthImg, wMat, range, paramMinPoints, paramMaxWeight);
 
     // control
-/*
-    float linearBias = avZ - paramX;
-    float angularBias = centerX - avX;
+    float linearBias = center.z - paramGoalZ;
+    float angularBias = cols / 2 - center.x;
 
-    linearSpeed = linearBias > 0 ? linearBias / (maxRange - goalZ) * maxLinear : linearBias / goalZ * maxLinear;
-    angularSpeed = angularBias * 2 / cols * maxAngular;
-
-    linearSpeed *= linearRespRate;
-    angularSpeed *= angularRespRate;
+    float linearSpeed = 0;
+    float angularSpeed = 0;
+    if (center.z > 0)
+    {
+      linearSpeed = linearBias / (paramMaxRange - paramGoalZ) * paramMaxLinear;
+      angularSpeed = angularBias * 2 / cols * paramMaxAngular;
     }
 
     // pub message
     geometry_msgs::Twist moveCmd;
     moveCmd.linear.x = linearSpeed;
+    moveCmd.linear.y = 0;
     moveCmd.angular.z = angularSpeed;
     cmdVelPub.publish(moveCmd);
-*/
-
-
-
   }
   catch (Exception& e)
   {
@@ -114,29 +118,25 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
 int main(int argc, char **argv)
 {
   // init ros
-  ros::init(argc, argv, "follower3");
+  ros::init(argc, argv, "follower");
   MyNodeHandle node;
   ros::Subscriber depthRawSub = node.subscribe("/depth/image_raw", 10, depthCallback);
   ros::Subscriber commandSub = node.subscribe("/cmd_center/author", 100, commandCallback);
+  ros::Subscriber frontSub = node.subscribe("/sonar/front", 100, frontCallback);
+  ros::Subscriber leftSub = node.subscribe("/sonar/left", 100, leftCallback);
+  ros::Subscriber rightSub = node.subscribe("/sonar/right", 100, rightCallback);
   cmdVelPub = node.advertise<geometry_msgs::Twist>("/goal_vel", 100);
 
   // get params
-  ROS_INFO("follower3 get params:");
-  paused = node.getParamEx("follower3/paused", true);
-  maxLinear = node.getParamEx("follower3/maxLinear", 0.5);
-  maxAngular = node.getParamEx("follower3/maxAngular", 2.0);
-  goalZ = node.getParamEx("follower3/goalZ", 600);
-  maxZ = node.getParamEx("follower3/maxZ", 900);
-  maxWeight = node.getParamEx("follower3/maxWeight", 8.0);
-  weightMarggin = node.getParamEx("follower3/weightMarggin", 50);
-  minPoints = node.getParamEx("follower3/minPoints", 1000);
-  linearRespRate = node.getParamEx("follower3/linearRespRate", 1.0);
-  angularRespRate = node.getParamEx("follower3/angularRespRate", 1.0);
-  isViewVideo = node.getParamEx("follower3/isViewVideo", true);
-  isSaveVideo = node.getParamEx("follower3/isSaveVideo", true);
-  string histVideoPath = node.getParamEx("follower3/histVideoPath", "histogram.avi");
-  string depthVideoPath = node.getParamEx("follower3/depthVideoPath", "follower.avi");
-  string rgbVideoPath = node.getParamEx("follower3/rgbVideoPath", "rgb.avi");
+  ROS_INFO("follower get params:");
+  paused = node.getParamEx("follower/paused", true);
+  paramMinRange = node.getParamEx("follower/minRange", 500);
+  paramMaxRange = node.getParamEx("follower/maxRange", 1000);
+  paramGoalZ = node.getParamEx("follower/goalZ", 500);
+  paramMinPoints = node.getParamEx("follower/minPoints", 2000);
+  paramMaxWeight = node.getParamEx("follower/maxWeight", 8.0);
+  paramMaxLinear = node.getParamEx("follower/maxLinear", 0.5);
+  paramMaxAngular = node.getParamEx("follower/maxAngular", 2.0);
 
   ros::spin();
 
