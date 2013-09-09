@@ -22,7 +22,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs std_msgs cv_bridge me
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  TwistWithMask.msg
+#  TwistWithMask.msg
 )
 
 ## Generate services in the 'srv' folder
