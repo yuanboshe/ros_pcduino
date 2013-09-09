@@ -57,7 +57,7 @@ catkin_package(
 ## Build ##
 ###########
 
-set(c_env_dir /home/viki/c_enviroment)
+set(c_env_dir /home/ubuntu/c_enviroment)
 set(arduino_core_dir ${c_env_dir}/hardware/arduino/cores/arduino)
 set(arduino_variants_dir ${c_env_dir}/hardware/arduino/variants/sunxi)
 
