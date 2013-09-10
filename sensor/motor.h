@@ -20,11 +20,11 @@ void moto_pin_init(char pin1, char pin2)
 void moto_pwm_set(int pwm_id, int freq, int value)
 {
     int step = 0;
-    //printf("Usage PIN_ID(3/9/10/11) Frequency[125-2000]Hz Duty Level     or PIN_ID(5/6) Frequency[195,260,390,520,781]Hz Duty Level\n ");
+    printf("Usage PIN_ID(3/9/10/11) Frequency[125-2000]Hz Duty Level     or PIN_ID(5/6) Frequency[195,260,390,520,781]Hz Duty Level\n ");
     step = pwmfreq_set(pwm_id,freq);
     if(step > 0)
     {
-        //printf("PWM%d test with duty cycle %d\n", pwm_id, value);
+        printf("PWM%d test with duty cycle %d\n", pwm_id, value);
         analogWrite(pwm_id, value);
     }
     else

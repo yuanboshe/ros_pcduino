@@ -6,7 +6,8 @@
 
 void cmdVelCallback(const geometry_msgs::TwistConstPtr& msg)
 {
-  moto_pwm_set(3, 1, 2);
+  ROS_INFO("cmd_callback");
+  moto_pwm_set(3, 1000, 1000);
   set_moto_turn_to(1, 2, HIGH, LOW);
 }
 
