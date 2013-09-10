@@ -17,7 +17,7 @@ ros::Publisher cmdVelPub;
 bool paused; // dynamic pause or resume this program
 int paramMinRange, paramMaxRange;
 double paramMaxWeight;
-int paramGoalZ, paramMinPoints;
+int paramGoalZ, paramMinPoints, paramMargin;
 double paramMaxLinear, paramMaxAngular;
 
 bool stopFlag = false;
@@ -88,7 +88,7 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
     float range[2] = {paramMinRange, paramMaxRange};
     Mat_<float> wMat;
     Point3f center;
-    center = util.calcWeightCneter(depthImg, wMat, range, paramMinPoints, paramMaxWeight);
+    center = util.calcWeightCneter(depthImg, wMat, range, paramMinPoints, paramMaxWeight, paramMargin);
 
     // control
     float linearBias = center.z - paramGoalZ;
@@ -133,6 +133,7 @@ int main(int argc, char **argv)
   paramMinRange = node.getParamEx("follower/minRange", 500);
   paramMaxRange = node.getParamEx("follower/maxRange", 1000);
   paramGoalZ = node.getParamEx("follower/goalZ", 500);
+  paramMargin = node.getParamEx("follower/margin", 0);
   paramMinPoints = node.getParamEx("follower/minPoints", 2000);
   paramMaxWeight = node.getParamEx("follower/maxWeight", 8.0);
   paramMaxLinear = node.getParamEx("follower/maxLinear", 0.5);

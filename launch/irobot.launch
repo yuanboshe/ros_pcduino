@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find ros_pcduino)/launch/vel_center.launch" />
+  <include file="$(find ros_pcduino)/launch/irobot/irobot_cmd_center.launch" />
+  <include file="$(find ros_pcduino)/launch/irobot/irobot_follower.launch" />
+  <include file="$(find ros_pcduino)/launch/irobot/irobot_avoidance.launch" />
+</launch>

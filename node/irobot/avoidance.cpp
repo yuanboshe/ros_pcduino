@@ -70,8 +70,8 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
   try
   {
     // calc obstacle front
-    int frontX = (320 - frontWidth) / 2;
-    int frontY = 240 - frontHeight;
+    int frontX = (cols - frontWidth) / 2;
+    int frontY = rows - frontHeight;
     Rect frontRect = Rect(frontX, frontY, frontWidth, frontHeight);
     Mat frontRoi = depthImg(frontRect);
 

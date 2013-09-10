@@ -1,6 +1,5 @@
-<!-- Yuanbo She, 2013.8.19 -->
 <launch>
-  <node pkg="intel_ros_vm" name="obstacle_avoidance" type="obstacle_avoidance" output="screen" >
+  <node pkg="ros_pcduino" name="avoidance" type="irobot_avoidance" output="screen" >
     <param name="paused" type="bool" value="true" />
     <param name="maxLinear" type="double" value="0.2" />
     <param name="maxAngular" type="double" value="1.0" />
@@ -18,6 +17,5 @@
     <param name="rotationHeight" type="int" value="60" />
     <param name="isViewVideo" type="bool" value="false" />
     <param name="isSaveVideo" type="bool" value="false" />
-    <param name="depthVideoPath" type="string" value="/home/ubuntu/obstacle_avoidance.avi" />
   </node>
 </launch>
