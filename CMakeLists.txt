@@ -71,33 +71,41 @@ include_directories(include
   ${c_env_dir}
 )
 
-## Declare a cpp library
-add_library(sr04 sensor/SR04.cpp)
+## Common libs
 add_library(csvparser src/csvparser.cpp)
 add_library(Utility src/Utility.cpp)
 
 ## Sensors
-
+add_library(sr04 sensor/SR04.cpp)
+target_link_libraries(sr04 ${c_env_dir}/libarduino.a)
+add_library(motor sensor/motor.c)
+target_link_libraries(motor ${c_env_dir}/libarduino.a)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 #add_dependencies(sr04 ${c_env_dir}/libarduino.a)
 
-## Specify libraries to link a library or executable target against
-target_link_libraries(sr04 ${c_env_dir}/libarduino.a)
-
-## Nodes
-add_executable(follower node/follower.cpp)
-add_executable(obstacle_avoidance node/obstacle_avoidance.cpp)
-add_executable(vel_center node/vel_center.cpp)
-add_executable(cmd_center node/cmd_center.cpp)
-target_link_libraries(follower Utility ${catkin_LIBRARIES})
-target_link_libraries(obstacle_avoidance Utility ${catkin_LIBRARIES})
-target_link_libraries(vel_center ${catkin_LIBRARIES})
-target_link_libraries(cmd_center csvparser ${catkin_LIBRARIES})
-
-add_executable(sonar3 node/sonar3.cpp)
+## Common nodes
+add_executable(sonar3 node/common/sonar3.cpp)
 target_link_libraries(sonar3 sr04 ${catkin_LIBRARIES})
+add_executable(vel_center node/common/vel_center.cpp)
+target_link_libraries(vel_center ${catkin_LIBRARIES})
+
+## Rovio nodes
+add_executable(rovio_cmd_center node/rovio/cmd_center.cpp)
+target_link_libraries(rovio_cmd_center csvparser ${catkin_LIBRARIES})
+add_executable(rovio_follower node/rovio/follower.cpp)
+target_link_libraries(rovio_follower Utility ${catkin_LIBRARIES})
+add_executable(rovio_avoidance node/rovio/avoidance.cpp)
+target_link_libraries(rovio_avoidance Utility ${catkin_LIBRARIES})
+
+## Rovio nodes
+add_executable(irobot_cmd_center node/irobot/cmd_center.cpp)
+target_link_libraries(irobot_cmd_center csvparser ${catkin_LIBRARIES})
+add_executable(irobot_follower node/irobot/follower.cpp)
+target_link_libraries(irobot_follower Utility ${catkin_LIBRARIES})
+add_executable(irobot_avoidance node/irobot/avoidance.cpp)
+target_link_libraries(irobot_avoidance Utility ${catkin_LIBRARIES})
 
 ## Test
 add_executable(test_camera test/test_camera.cpp)

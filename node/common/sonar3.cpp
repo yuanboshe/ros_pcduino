@@ -19,11 +19,17 @@ int main(int argc, char **argv)
   // get params
   int rate = node.getParamEx("sonar3/rate", 6);
   int count = node.getParamEx("sonar3/count", 4);
+  int frontEcho = node.getParamEx("sonar3/frontEcho", 8);
+  int frontTrig = node.getParamEx("sonar3/frontTrig", 9);
+  int leftEcho = node.getParamEx("sonar3/leftEcho", 10);
+  int leftTrig = node.getParamEx("sonar3/leftTrig", 11);
+  int rightEcho = node.getParamEx("sonar3/rightEcho", 12);
+  int rightTrig = node.getParamEx("sonar3/rightTrig", 13);
 
   // init SR04 front-left-right
   init();
-  int echoPins[3] = {8, 10, 12};
-  int trigPins[3] = {9, 11, 13};
+  int echoPins[3] = {frontEcho, leftEcho, rightEcho};
+  int trigPins[3] = {frontTrig, leftTrig, rightTrig};
   std::list<int> bufs[3];
   std::vector<SR04> sonars;
   for (int i = 0; i < 3; i++)
