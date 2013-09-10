@@ -78,8 +78,8 @@ add_library(Utility src/Utility.cpp)
 ## Sensors
 add_library(sr04 sensor/SR04.cpp)
 target_link_libraries(sr04 ${c_env_dir}/libarduino.a)
-add_library(motor sensor/motor.c)
-target_link_libraries(motor ${c_env_dir}/libarduino.a)
+#add_library(motor sensor/motor.c)
+#target_link_libraries(motor ${c_env_dir}/libarduino.a)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -92,6 +92,8 @@ add_executable(vel_center node/common/vel_center.cpp)
 target_link_libraries(vel_center ${catkin_LIBRARIES})
 
 ## Rovio nodes
+add_executable(rovio_base node/rovio/rovio_base.cpp)
+target_link_libraries(rovio_base ${c_env_dir}/libarduino.a ${catkin_LIBRARIES})
 add_executable(rovio_cmd_center node/rovio/cmd_center.cpp)
 target_link_libraries(rovio_cmd_center csvparser ${catkin_LIBRARIES})
 add_executable(rovio_follower node/rovio/follower.cpp)
