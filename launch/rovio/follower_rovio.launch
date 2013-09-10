@@ -1,0 +1,13 @@
+<!-- Yuanbo She, 2013.8.13 -->
+<launch>
+  <node pkg="ros_pcduino" name="follower" type="follower" output="screen" >
+    <param name="paused" type="bool" value="false" />
+    <param name="minRange" type="int" value="500" />
+    <param name="maxRange" type="int" value="1000" />
+    <param name="goalZ" type="int" value="500" />
+    <param name="minPoints" type="int" value="50000" />
+    <param name="maxWeight" type="double" value="8.0" />
+    <param name="maxLinear" type="double" value="0.5" />
+    <param name="maxAngular" type="double" value="2.0" />
+  </node>
+</launch>

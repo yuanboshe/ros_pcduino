@@ -2,5 +2,11 @@
   <node pkg="ros_pcduino" name="sonar3" type="sonar3" output="screen" >
     <param name="rate" type="int" value="6" />
     <param name="count" type="int" value="4" />
+    <param name="frontEcho" type="int" value="8" />
+    <param name="frontTrig" type="int" value="9" />
+    <param name="leftEcho" type="int" value="10" />
+    <param name="leftTrig" type="int" value="11" />
+    <param name="rightEcho" type="int" value="12" />
+    <param name="rightTrig" type="int" value="13" />
   </node>
 </launch>

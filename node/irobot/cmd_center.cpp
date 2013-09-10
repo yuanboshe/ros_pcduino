@@ -2,6 +2,7 @@
 #include <std_msgs/String.h>
 #include <sensor_msgs/Image.h>
 #include <geometry_msgs/Twist.h>
+#include <ros_pcduino/TwistWithMask.h>
 #include "MyNodeHandle.h"
 #include "csvparser.h"
 #include <iostream>
@@ -17,74 +18,15 @@ double angularStep;
 // publishers
 ros::Publisher authorPub;
 ros::Publisher goalVelPub;
-ros::Publisher goalLinearPub;
-ros::Publisher goalAngularPub;
-ros::Publisher adjustLinearPub;
-ros::Publisher adjustAngularPub;
-ros::Publisher increLinearPub;
-ros::Publisher increAngularPub;
+ros::Publisher goalVelMaskPub;
 ros::Publisher speaker;
 
-void pubGoalLinear(double linear)
+void pubGoalVel(double lx, double ly, double az)
 {
-  geometry_msgs::Vector3 goalLinear;
-  goalLinear.x = linear;
-  goalLinearPub.publish(goalLinear);
-}
-
-void pubGoalAngular(double angular)
-{
-  geometry_msgs::Vector3 goalAngular;
-  goalAngular.z = angular;
-  goalAngularPub.publish(goalAngular);
-}
-
-void pubGoalVel(double linear, double angular)
-{
-  geometry_msgs::Twist goalVel;
-  goalVel.linear.x = linear;
-  goalVel.angular.z = angular;
-  goalVelPub.publish(goalVel);
-}
-
-void pubAdjustLinear(double linear)
-{
-  geometry_msgs::Vector3 adjustLinear;
-  adjustLinear.x = linear;
-  adjustLinearPub.publish(adjustLinear);
-}
-
-void pubAdjustAngular(double angular)
-{
-  geometry_msgs::Vector3 adjustAngular;
-  adjustAngular.z = angular;
-  adjustAngularPub.publish(adjustAngular);
-}
-
-void pubAdjustVel(double linear, double angular)
-{
-  pubAdjustLinear(linear);
-  pubAdjustAngular(angular);
-}
-
-void pubIncreLinear(double linear)
-{
-  geometry_msgs::Vector3 increLinear;
-  increLinear.x = linear;
-  increLinearPub.publish(increLinear);
-}
-
-void pubIncreAngular(double angular)
-{
-  geometry_msgs::Vector3 increAngular;
-  increAngular.z = angular;
-  increAngularPub.publish(increAngular);
-}
-
-void pubIncreVel(double linear, double angular)
-{
-  pubIncreLinear(linear);
-  pubIncreAngular(angular);
+  geometry_msgs::Twist gVel;
+  gVel.linear.x = lx;
+  gVel.linear.y = ly;
+  gVel.angular.z = az;
 }
 
 std::string author;
@@ -167,8 +109,7 @@ void recogCallback(const std_msgs::String::ConstPtr& msg)
     if (checkCmd("pause"))
     {
       paused = true;
-      pubGoalVel(0, 0);
-      pubAdjustVel(0, 0);
+      pubGoalVel(0, 0, 0);
       pubAuthor("center");
     }
   }
@@ -187,55 +128,54 @@ void recogCallback(const std_msgs::String::ConstPtr& msg)
     if (checkCmd("stop"))
     {
       pubAuthor("center");
-      pubGoalVel(0, 0);
-      pubAdjustVel(0, 0);
+      pubGoalVel(0, 0, 0);
     }
   }
   else if (cmd == "follow me")
   {
     if (checkCmd("follow me"))
-      pubAdjustVel(0, 0);
+      pubGoalVel(0, 0, 0);
       pubAuthor("follower");
   }
   else if (cmd == "go your self")
   {
     if (checkCmd("go your self"))
-      pubAdjustVel(0, 0);
+      pubGoalVel(0, 0, 0);
       pubAuthor("avoidance");
   }
   else if (cmd == "slower")
   {
     if (checkCmd("slower"))
     {
-      pubIncreVel(-0.1, -0.8);
+      // empty
     }
   }
   else if (cmd == "faster")
   {
     if (checkCmd("faster"))
     {
-      pubIncreVel(0.1, 0.8);
+      // empty
     }
   }
   else if (cmd == "turn left")
   {
     if (checkCmd("turn left"))
     {
-      pubGoalAngular(0.8);
+      pubGoalVel(0, 0, 0.8);
     }
   }
   else if (cmd == "turn right")
   {
     if (checkCmd("turn right"))
     {
-      pubGoalAngular(-0.8);
+      pubGoalVel(0, 0, -0.8);
     }
   }
   else if (cmd == "reset speed")
   {
     if (checkCmd("reset speed"))
     {
-      pubAdjustVel(0, 0);
+      // empty
     }
   }
   else if (cmd == "hello")
@@ -261,8 +201,7 @@ void recogCallback(const std_msgs::String::ConstPtr& msg)
   {
     if (checkCmd("go straight"))
     {
-      pubGoalVel(linearSpeed, 0);
-      pubAdjustAngular(0);
+      pubGoalVel(linearSpeed, 0, 0);
       pubAuthor("center");
     }
   }
@@ -270,8 +209,7 @@ void recogCallback(const std_msgs::String::ConstPtr& msg)
   {
     if (checkCmd("backward"))
     {
-      pubGoalVel(-linearSpeed, 0);
-      pubAdjustAngular(0);
+      pubGoalVel(-linearSpeed, 0, 0);
       pubAuthor("center");
     }
   }
@@ -279,7 +217,7 @@ void recogCallback(const std_msgs::String::ConstPtr& msg)
   {
     if (checkCmd("rotate left"))
     {
-      pubGoalVel(0, angularSpeed);
+      pubGoalVel(0, 0, angularSpeed);
       pubAuthor("center");
     }
   }
@@ -287,7 +225,7 @@ void recogCallback(const std_msgs::String::ConstPtr& msg)
   {
     if (checkCmd("rotate right"))
     {
-      pubGoalVel(0, -angularSpeed);
+      pubGoalVel(0, 0, -angularSpeed);
       pubAuthor("center");
     }
   }
@@ -304,20 +242,13 @@ int main(int argc, char **argv)
   ros::Subscriber recogSub = node.subscribe("/recognizer/output", 100, recogCallback);
   authorPub = node.advertise<std_msgs::String>("/cmd_center/author", 100);
   goalVelPub = node.advertise<geometry_msgs::Twist>("/goal_vel", 100);
-  goalLinearPub = node.advertise<geometry_msgs::Vector3>("/goal_linear", 100);
-  goalAngularPub = node.advertise<geometry_msgs::Vector3>("/goal_angular", 100);
-  adjustLinearPub = node.advertise<geometry_msgs::Vector3>("/adjust_linear", 100);
-  adjustAngularPub = node.advertise<geometry_msgs::Vector3>("/adjust_angular", 100);
-  increLinearPub = node.advertise<geometry_msgs::Vector3>("/incre_linear", 100);
-  increAngularPub = node.advertise<geometry_msgs::Vector3>("/incre_angular", 100);
+  goalVelMaskPub = node.advertise<ros_pcduino::TwistWithMask>("/goal_vel_mask", 100);
   speaker = node.advertise<std_msgs::String>("voice_syn", 100);
 
   // Get params
   paused = node.getParamEx("cmd_center/paused", false);
   linearSpeed = node.getParamEx("cmd_center/linearSpeed", 0.2);
   angularSpeed = node.getParamEx("cmd_center/angularSpeed", 0.4);
-  linearStep = node.getParamEx("cmd_center/linearStep", 0.1);
-  angularStep = node.getParamEx("cmd_center/linearStep", 0.2);
   author = node.getParamEx("cmd_center/author", std::string("center"));
   std::string csvPath = node.getParamEx("cmd_center/cmd_csv_path", std::string("please/set/the/path.csv"));
 
