@@ -1,8 +1,7 @@
 #ifndef SR04_H
 #define SR04_H
 
-	#include "Arduino.h"
-
+#include "Arduino.h"
 #include <inttypes.h>
 
 #define PULSE_TIMEOUT 150000L	// 100ms
@@ -81,6 +80,3 @@ private:
 	bool _autoMode;
 };
 #endif
-
-
-
