@@ -1,10 +1,8 @@
 <launch>
   <node pkg="ros_pcduino" name="avoidance" type="irobot_avoidance" output="screen" >
     <param name="paused" type="bool" value="true" />
-    <param name="maxLinear" type="double" value="0.2" />
-    <param name="maxAngular" type="double" value="1.0" />
-    <param name="linearRespRate" type="double" value="1.0" />
-    <param name="angularRespRate" type="double" value="1.0" />
+    <param name="maxLinear" type="double" value="0.3" />
+    <param name="maxAngular" type="double" value="1.5" />
     <param name="goalRotationDepth" type="int" value="450" />
     <param name="goalFrontDepth" type="int" value="450" />
     <param name="minRotationPoints" type="int" value="50" />
@@ -15,7 +13,7 @@
     <param name="frontHeight" type="int" value="40" />
     <param name="rotationWidth" type="int" value="100" />
     <param name="rotationHeight" type="int" value="60" />
-    <param name="isViewVideo" type="bool" value="false" />
-    <param name="isSaveVideo" type="bool" value="false" />
+    <param name="isSonarOn" type="bool" value="false" />
+    <param name="minSonarFront" type="double" value="0.40" />
   </node>
 </launch>

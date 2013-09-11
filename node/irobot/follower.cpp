@@ -64,6 +64,7 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
   if (paused)
     return;
+
   // convert sensor_msgs/Image to Mat
   cv_bridge::CvImagePtr cvImgPtr;
   Mat_<uint16_t> depthImg;
@@ -120,22 +121,22 @@ int main(int argc, char **argv)
   // init ros
   ros::init(argc, argv, "follower");
   MyNodeHandle node;
-  ros::Subscriber depthRawSub = node.subscribe("/depth/image_raw", 10, depthCallback);
-  ros::Subscriber commandSub = node.subscribe("/cmd_center/author", 100, commandCallback);
-  ros::Subscriber frontSub = node.subscribe("/sonar/front", 100, frontCallback);
-  ros::Subscriber leftSub = node.subscribe("/sonar/left", 100, leftCallback);
-  ros::Subscriber rightSub = node.subscribe("/sonar/right", 100, rightCallback);
-  cmdVelPub = node.advertise<geometry_msgs::Twist>("/goal_vel", 100);
+  ros::Subscriber depthRawSub = node.subscribe("/depth/image_raw", 1, depthCallback);
+  ros::Subscriber commandSub = node.subscribe("/cmd_center/author", 1, commandCallback);
+  ros::Subscriber frontSub = node.subscribe("/sonar/front", 1, frontCallback);
+  ros::Subscriber leftSub = node.subscribe("/sonar/left", 1, leftCallback);
+  ros::Subscriber rightSub = node.subscribe("/sonar/right", 1, rightCallback);
+  cmdVelPub = node.advertise<geometry_msgs::Twist>("/goal_vel", 1);
 
   // get params
   ROS_INFO("follower get params:");
   paused = node.getParamEx("follower/paused", true);
-  paramMinRange = node.getParamEx("follower/minRange", 500);
-  paramMaxRange = node.getParamEx("follower/maxRange", 1000);
+  paramMinRange = node.getParamEx("follower/minRange", 20);
+  paramMaxRange = node.getParamEx("follower/maxRange", 900);
   paramGoalZ = node.getParamEx("follower/goalZ", 500);
-  paramMargin = node.getParamEx("follower/margin", 0);
-  paramMinPoints = node.getParamEx("follower/minPoints", 2000);
-  paramMaxWeight = node.getParamEx("follower/maxWeight", 8.0);
+  paramMargin = node.getParamEx("follower/margin", 20);
+  paramMinPoints = node.getParamEx("follower/minPoints", 10000);
+  paramMaxWeight = node.getParamEx("follower/maxWeight", 3.0);
   paramMaxLinear = node.getParamEx("follower/maxLinear", 0.5);
   paramMaxAngular = node.getParamEx("follower/maxAngular", 2.0);
 

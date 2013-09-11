@@ -133,9 +133,9 @@ int main(int argc, char **argv)
   // init ros
   ros::init(argc, argv, "vel_center");
   MyNodeHandle node;
-  ros::Subscriber goalVelSub = node.subscribe("/goal_vel", 100, goalVelCallback);
-  ros::Subscriber goalLinearSub = node.subscribe("/goal_vel_mask", 100, goalVelWithMaskCallback);
-  ros::Publisher cmdVelPub = node.advertise<geometry_msgs::Twist>("/cmd_vel", 100);
+  ros::Subscriber goalVelSub = node.subscribe("/goal_vel", 1, goalVelCallback);
+  ros::Subscriber goalVelWithMaskSub = node.subscribe("/goal_vel_mask", 1, goalVelWithMaskCallback);
+  ros::Publisher cmdVelPub = node.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 
   // get params
   paramMinLinear = node.getParamEx("vel_center/minLinear", 0.03);

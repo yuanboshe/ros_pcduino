@@ -12,9 +12,9 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "sonar3");
   MyNodeHandle node;
   ros::Publisher rangePubs[3];
-  rangePubs[0] = node.advertise<sensor_msgs::Range>("/sonar/front", 100);
-  rangePubs[1] = node.advertise<sensor_msgs::Range>("/sonar/left", 100);
-  rangePubs[2] = node.advertise<sensor_msgs::Range>("/sonar/right", 100);
+  rangePubs[0] = node.advertise<sensor_msgs::Range>("/sonar/front", 1);
+  rangePubs[1] = node.advertise<sensor_msgs::Range>("/sonar/left", 1);
+  rangePubs[2] = node.advertise<sensor_msgs::Range>("/sonar/right", 1);
 
   // get params
   int rate = node.getParamEx("sonar3/rate", 6);

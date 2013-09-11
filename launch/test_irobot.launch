@@ -3,5 +3,5 @@
   <include file="$(find ros_pcduino)/launch/irobot/irobot_cmd_center.launch" />
   <include file="$(find ros_pcduino)/launch/irobot/irobot_follower.launch" />
   <include file="$(find ros_pcduino)/launch/irobot/irobot_avoidance.launch" />
-  <include file="$(find ros_pcduino)/launch/3party/irobot_base.launch" />
+  <!-- <include file="$(find ros_pcduino)/launch/3party/irobot_base.launch" /> -->
 </launch>
