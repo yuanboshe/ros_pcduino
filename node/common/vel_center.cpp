@@ -4,7 +4,7 @@
 #include "MyNodeHandle.h"
 #include <math.h>
 
-#define BIAS 0.000001;
+#define BIAS 0.001;
 
 // params
 double paramMinLinear, paramMinAngular;
@@ -16,7 +16,7 @@ geometry_msgs::Twist currentVel;
 
 bool isDiff(geometry_msgs::Twist gVel, geometry_msgs::Twist cVel)
 {
-  float min = 0.00001;
+  float min = BIAS;
   return fabs(gVel.linear.x - cVel.linear.x) > min || fabs(gVel.linear.y - cVel.linear.y) > min || fabs(gVel.linear.z - cVel.linear.z) > min
       || fabs(gVel.angular.x - cVel.angular.x) > min || fabs(gVel.angular.y - cVel.angular.y) > min || fabs(gVel.angular.z - cVel.angular.z) > min;
 }
@@ -152,15 +152,15 @@ int main(int argc, char **argv)
   paramAccelerateAngular /= rate; // accelerate limit per loop
   while (ros::ok())
   {
-    if (isDiff(goalVel, currentVel))
-    {
-      smoothTwist(goalVel, currentVel);
-      // pub msg
-      cmdVelPub.publish(currentVel);
+    //if (isDiff(goalVel, currentVel))
 
-      ROS_INFO("goal: l[%.3f][%.3f][%.3f] a[%.3f][%.3f][%.3f]", goalVel.linear.x, goalVel.linear.y, goalVel.linear.z, goalVel.angular.x, goalVel.angular.y, goalVel.angular.z);
-      ROS_INFO("real: l[%.3f][%.3f][%.3f] a[%.3f][%.3f][%.3f]", currentVel.linear.x, currentVel.linear.y, currentVel.linear.z, currentVel.angular.x, currentVel.angular.y, currentVel.angular.z);
-    }
+    smoothTwist(goalVel, currentVel);
+    // pub msg
+    cmdVelPub.publish(currentVel);
+
+//    ROS_INFO("goal: l[%.3f][%.3f][%.3f] a[%.3f][%.3f][%.3f]", goalVel.linear.x, goalVel.linear.y, goalVel.linear.z, goalVel.angular.x, goalVel.angular.y, goalVel.angular.z);
+//    ROS_INFO("real: l[%.3f][%.3f][%.3f] a[%.3f][%.3f][%.3f]", currentVel.linear.x, currentVel.linear.y, currentVel.linear.z, currentVel.angular.x, currentVel.angular.y,
+//             currentVel.angular.z);
 
     ros::spinOnce();
     loopRate.sleep();

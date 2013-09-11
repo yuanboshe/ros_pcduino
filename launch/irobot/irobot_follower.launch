@@ -1,6 +1,6 @@
 <launch>
   <node pkg="ros_pcduino" name="follower" type="irobot_follower" output="screen" >
-    <param name="paused" type="bool" value="false" />
+    <param name="paused" type="bool" value="true" />
     <param name="minRange" type="int" value="20" />
     <param name="maxRange" type="int" value="900" />
     <param name="goalZ" type="int" value="500" />
