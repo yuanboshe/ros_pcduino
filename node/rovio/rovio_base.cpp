@@ -36,7 +36,7 @@ void cmdVelCallback(const geometry_msgs::TwistConstPtr& msg)
   motorA.run(rotA);
   motorB.run(rotB);
   motorC.run(rotC);
-  ROS_INFO("Motor: rotA[%.4f] rotB[%.4f] rotC[%.4f]", rotA, rotB, rotC);
+  //ROS_INFO("Motor: rotA[%.4f] rotB[%.4f] rotC[%.4f]", rotA, rotB, rotC);
 }
 
 
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
   // init ros
   ros::init(argc, argv, "rovio_base");
   MyNodeHandle node;
-  ros::Subscriber cmdVelSub = node.subscribe("/cmd_vel", 1, cmdVelCallback);
+//  ros::Subscriber cmdVelSub = node.subscribe("/cmd_vel", 1, cmdVelCallback);
 
   // get params
   int motorAEn = node.getParamEx("rovio_base/motorAEn", 3);
@@ -63,9 +63,11 @@ int main(int argc, char **argv)
   maxAngular = node.getParamEx("rovio_base/maxAngular", 2.0);
 
   // init motors
-  motorA.init(motorAEn, motorA1, motorA2);
-  motorB.init(motorBEn, motorB1, motorB2);
-  motorC.init(motorCEn, motorC1, motorC2);
+//  motorA.init(motorAEn, motorA1, motorA2);
+//  motorB.init(motorBEn, motorB1, motorB2);
+//  motorC.init(motorCEn, motorC1, motorC2);
+
+  motorA.test(3, 4, 5, 781, 0.5);
 
   // calc rates
   rateX = 1 / (cos(biasAngle) * maxLinear);

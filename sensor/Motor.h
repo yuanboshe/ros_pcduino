@@ -12,13 +12,15 @@ class Motor
 {
 public:
   Motor();
-  Motor(int pinPwm, int pinA, int pinB, int freq = 500);
+  Motor(int pinPwm, int pinA, int pinB, int freq = 781);
   virtual ~Motor();
   int pinPwm;
   int pinA;
   int pinB;
-  void init(int pinPwm, int pinA, int pinB, int freq = 500);
+  int step;
+  void init(int pinPwm, int pinA, int pinB, int freq = 781);
   void run(float duty);
+  void test(int pinPwm, int pinA, int pinB, int freq, float duty);
 };
 
 #endif /* MOTOR_H_ */
