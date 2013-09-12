@@ -1,39 +1,59 @@
+/*
+ * Motor.cpp
+ *
+ *  Created on: Sep 12, 2013
+ *      Author: viki
+ */
+
+#include "Motor.h"
 #include <Arduino.h>
-#include "motor.h"
-/*
-	pin for moto
-*/
-void moto_pin_init(char pin1, char pin2)
+#include <wiring_private.h>
+
+Motor::Motor()
 {
-	pinMode(pin1, OUTPUT);
-	pinMode(pin2, OUTPUT);
 }
-/*
-	pwm_id: the pin for pwm
-	freq:Frequency
-	value:duty cycle
-*/
-void moto_pwm_set(int pwm_id, int freq, int value)
+
+Motor::Motor(int pinPwm, int pinA, int pinB, int freq)
 {
-	int step = 0;
-	//printf("Usage PIN_ID(3/9/10/11) Frequency[125-2000]Hz Duty Level     or PIN_ID(5/6) Frequency[195,260,390,520,781]Hz Duty Level\n ");
-	step = pwmfreq_set(pwm_id,freq);
-	if(step > 0)
-	{
-		//printf("PWM%d test with duty cycle %d\n", pwm_id, value);
-		analogWrite(pwm_id, value);
-	}
-	else
-	{
-		return;
-	}
+  init(pinPwm, pinA, pinB, freq);
 }
-/*
-	example:
-	 set_moto_turn_to(1,2,HIGH,LOW);
-*/
-void set_moto_turn_to(int pin1, int pin2, int turn1, int turn2)
+
+Motor::~Motor()
 {
-	digitalWrite(pin1, turn1);
-	digitalWrite(pin2, turn2);
+  // TODO Auto-generated destructor stub
+}
+
+void Motor::init(int pinPwm, int pinA, int pinB, int freq)
+{
+  this->pinPwm = pinPwm;
+  this->pinA = pinA;
+  this->pinB = pinB;
+  pinMode(pinA, OUTPUT);
+  pinMode(pinB, OUTPUT);
+  int step = 0;
+  step = pwmfreq_set(pinPwm, freq);
+  printf("PWM%d set freq %d and valid duty cycle range [0, %d]\n", pinPwm, freq, step);
+}
+
+void Motor::run(float duty)
+{
+  if (fabs(duty) > 1)
+  {
+    printf("Please set duty between -1~1");
+    duty = duty > 0 ? 1 : -1;
+  }
+  if (duty > 0)
+  {
+    digitalWrite(pinA, HIGH);
+    digitalWrite(pinB, LOW);
+    int value = MAX_PWM_LEVEL * duty;
+    analogWrite(pinPwm, value);
+  }
+  else
+  {
+    digitalWrite(pinA, HIGH);
+    digitalWrite(pinB, LOW);
+    int value = -MAX_PWM_LEVEL * duty;
+    analogWrite(pinPwm, value);
+  }
 }
