@@ -2,6 +2,7 @@
 #include <std_msgs/String.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/Range.h>
 #include <geometry_msgs/Twist.h>
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/opencv.hpp>
@@ -16,7 +17,6 @@ double maxLinear;
 double maxAngular;
 int goalRotationDepth;
 int goalFrontDepth;
-double linearRespRate, angularRespRate;
 int minRotationPoints;
 int maxRotationDepth;
 int minFrontPoints;
@@ -25,30 +25,57 @@ int frontWidth;
 int frontHeight;
 int rotationWidth;
 int rotationHeight;
-bool isViewVideo;
-bool isSaveVideo;
+bool isSonarOn;
+double minSonarFront;
+
 double linearSpeed = 0;
 double angularSpeed = 0;
 
-VideoWriter depthWriter;
-Size depthSize(640, 480);
-
+bool stopFlag = false;
 void commandCallback(const std_msgs::String::ConstPtr& msg)
 {
   if (msg->data == "avoidance")
   {
     paused = false;
+    stopFlag = true;
   }
   else
   {
     paused = true;
+    if (stopFlag)
+    {
+      geometry_msgs::Twist moveCmd;
+      moveCmd.linear.x = 0;
+      moveCmd.angular.z = 0;
+      cmdVelPub.publish(moveCmd);
+      stopFlag = false;
+    }
   }
+}
+
+float frontRange = 0;
+void frontCallback(const sensor_msgs::RangeConstPtr& msg)
+{
+  frontRange = msg->range;
+}
+
+float leftRange = 0;
+void leftCallback(const sensor_msgs::RangeConstPtr& msg)
+{
+  leftRange = msg->range;
+}
+
+float rightRange = 0;
+void rightCallback(const sensor_msgs::RangeConstPtr& msg)
+{
+  rightRange = msg->range;
 }
 
 void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
   if (paused)
-        return;
+    return;
+
   // convert sensor_msgs/Image to Mat
   cv_bridge::CvImagePtr cvImgPtr;
   Mat_<uint16_t> depthImg;
@@ -70,14 +97,14 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
   try
   {
     // calc obstacle front
-    int frontX = (320 - frontWidth) / 2;
-    int frontY = 240 - frontHeight;
+    int frontX = (cols - frontWidth) / 2;
+    int frontY = rows - frontHeight;
     Rect frontRect = Rect(frontX, frontY, frontWidth, frontHeight);
     Mat frontRoi = depthImg(frontRect);
 
     // calc obstacle left right
-    int rotationY = 240 - rotationHeight;
-    int rightX = 320 - rotationWidth;
+    int rotationY = rows - rotationHeight;
+    int rightX = cols - rotationWidth;
     Rect leftRect = Rect(0, rotationY, rotationWidth, rotationHeight);
     Rect rightRect = Rect(rightX, rotationY, rotationWidth, rotationHeight);
     Mat leftRoi = depthImg(leftRect);
@@ -185,42 +212,35 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& msg)
 int main(int argc, char **argv)
 {
   // init ros
-  ros::init(argc, argv, "obstacle_avoidance");
+  ros::init(argc, argv, "avoidance");
   MyNodeHandle node;
-  ros::Subscriber depthRawSub = node.subscribe("/camera/depth/image_raw", 100, depthCallback);
-  ros::Subscriber commandSub = node.subscribe("/cmd_center/author", 100, commandCallback);
-  cmdVelPub = node.advertise<geometry_msgs::Twist>("/goal_vel", 100);
+  ros::Subscriber depthRawSub = node.subscribe("/depth/image_raw", 1, depthCallback);
+  ros::Subscriber commandSub = node.subscribe("/cmd_center/author", 1, commandCallback);
+  cmdVelPub = node.advertise<geometry_msgs::Twist>("/goal_vel", 1);
 
   // get params
   ROS_INFO("obstacle_avoidance get params:");
-  paused = node.getParamEx("obstacle_avoidance/paused", false);
-  maxLinear = node.getParamEx("obstacle_avoidance/maxLinear", 0.2);
-  maxAngular = node.getParamEx("obstacle_avoidance/maxAngular", 1.0);
-  linearRespRate = node.getParamEx("obstacle_avoidance/linearRespRate", 1.0);
-  angularRespRate = node.getParamEx("obstacle_avoidance/angularRespRate", 1.0);
-  goalRotationDepth = node.getParamEx("obstacle_avoidance/goalRotationDepth", 450);
-  goalFrontDepth = node.getParamEx("obstacle_avoidance/goalFrontDepth", 450);
-  minRotationPoints = node.getParamEx("obstacle_avoidance/minRotationPoints", 50);
-  maxRotationDepth = node.getParamEx("obstacle_avoidance/maxRotationDepth", 800);
-  minFrontPoints = node.getParamEx("obstacle_avoidance/minFrontPoints", 300);
-  maxFrontDepth = node.getParamEx("obstacle_avoidance/maxFrontDepth", 1000);
-  frontWidth = node.getParamEx("obstacle_avoidance/frontWidth", 300);
-  frontHeight = node.getParamEx("obstacle_avoidance/frontHeight", 40);
-  rotationWidth = node.getParamEx("obstacle_avoidance/rotationWidth", 100);
-  rotationHeight = node.getParamEx("obstacle_avoidance/rotationHeight", 60);
-  isViewVideo = node.getParamEx("obstacle_avoidance/isViewVideo", true);
-  isSaveVideo = node.getParamEx("obstacle_avoidance/isSaveVideo", true);
-  string depthVideoPath = node.getParamEx("obstacle_avoidance/depthVideoPath", "obstacle_avoidance.avi");
+  paused = node.getParamEx("avoidance/paused", false);
+  maxLinear = node.getParamEx("avoidance/maxLinear", 0.3);
+  maxAngular = node.getParamEx("avoidance/maxAngular", 1.5);
+  goalRotationDepth = node.getParamEx("avoidance/goalRotationDepth", 450);
+  goalFrontDepth = node.getParamEx("avoidance/goalFrontDepth", 450);
+  minRotationPoints = node.getParamEx("avoidance/minRotationPoints", 50);
+  maxRotationDepth = node.getParamEx("avoidance/maxRotationDepth", 800);
+  minFrontPoints = node.getParamEx("avoidance/minFrontPoints", 300);
+  maxFrontDepth = node.getParamEx("avoidance/maxFrontDepth", 1000);
+  frontWidth = node.getParamEx("avoidance/frontWidth", 300);
+  frontHeight = node.getParamEx("avoidance/frontHeight", 40);
+  rotationWidth = node.getParamEx("avoidance/rotationWidth", 100);
+  rotationHeight = node.getParamEx("avoidance/rotationHeight", 60);
+  isSonarOn = node.getParamEx("avoidance/isSonarOn", false);
+  minSonarFront = node.getParamEx("avoidance/minSonarFront", 0.40);
 
-  try
+  if (isSonarOn)
   {
-    if ("" != depthVideoPath)
-      depthWriter.open(depthVideoPath, CV_FOURCC('M', 'J', 'P', 'G'), 10, depthSize);
-  }
-  catch (...)
-  {
-    ROS_ERROR("Can not access the video saved path, save vedio failed, please check!");
-    exit(1);
+    ros::Subscriber frontSub = node.subscribe("/sonar/front", 1, frontCallback);
+    ros::Subscriber leftSub = node.subscribe("/sonar/left", 1, leftCallback);
+    ros::Subscriber rightSub = node.subscribe("/sonar/right", 1, rightCallback);
   }
 
   ros::spin();
