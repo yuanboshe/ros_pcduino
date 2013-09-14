@@ -15,7 +15,7 @@ Motor::Motor()
 
 Motor::Motor(int pinPwm, int pinA, int pinB, int freq)
 {
-  init(pinPwm, pinA, pinB, freq);
+  initMotor(pinPwm, pinA, pinB, freq);
 }
 
 Motor::~Motor()
@@ -23,11 +23,12 @@ Motor::~Motor()
   // TODO Auto-generated destructor stub
 }
 
-void Motor::init(int pinPwm, int pinA, int pinB, int freq)
+void Motor::initMotor(int pinPwm, int pinA, int pinB, int freq)
 {
   this->pinPwm = pinPwm;
   this->pinA = pinA;
   this->pinB = pinB;
+  init();
   pinMode(pinA, OUTPUT);
   pinMode(pinB, OUTPUT);
   step = pwmfreq_set(pinPwm, freq);

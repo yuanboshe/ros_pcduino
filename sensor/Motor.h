@@ -18,7 +18,7 @@ public:
   int pinA;
   int pinB;
   int step;
-  void init(int pinPwm, int pinA, int pinB, int freq = 781);
+  void initMotor(int pinPwm, int pinA, int pinB, int freq = 781);
   void run(float duty);
   void test(int pinPwm, int pinA, int pinB, int freq, float duty);
 };
