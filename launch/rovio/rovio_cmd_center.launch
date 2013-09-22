@@ -1,0 +1,9 @@
+<launch>
+  <node pkg="ros_pcduino" name="cmd_center" type="rovio_cmd_center" output="screen" >
+    <param name="paused" type="bool" value="false" />
+    <param name="linearSpeed" type="double" value="0.25" />
+    <param name="angularSpeed" type="double" value="1" />
+    <param name="author" type="string" value="center" />
+    <param name="cmd_csv_path" type="string" value="$(find ros_pcduino)/include/commands.csv" />
+  </node>
+</launch>

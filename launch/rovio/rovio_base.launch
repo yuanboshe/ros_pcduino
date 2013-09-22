@@ -1,0 +1,17 @@
+<launch>
+  <node pkg="ros_pcduino" name="rovio_base" type="rovio_base" output="screen" >
+    <param name="motorAEn" type="int" value="3" />
+    <param name="motorA1" type="int" value="4" />
+    <param name="motorA2" type="int" value="5" />
+	<param name="motorBEn" type="int" value="6" />
+    <param name="motorB1" type="int" value="7" />
+    <param name="motorB2" type="int" value="8" />
+	<param name="motorCEn" type="int" value="9" />
+    <param name="motorC1" type="int" value="10" />
+    <param name="motorC2" type="int" value="11" />
+    <param name="biasAngle" type="double" value="0.5236" />
+    <param name="axialLenRate" type="double" value="0.8" />
+    <param name="maxLinear" type="double" value="0.4" />
+	<param name="maxAngular" type="double" value="2.0" />
+  </node>
+</launch>

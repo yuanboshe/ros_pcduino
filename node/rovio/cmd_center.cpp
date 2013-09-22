@@ -162,14 +162,14 @@ void recogCallback(const std_msgs::String::ConstPtr& msg)
   {
     if (checkCmd("turn left"))
     {
-      pubGoalVel(0, 0, angularSpeed);
+      pubGoalVel(0, linearSpeed, 0);
     }
   }
   else if (cmd == "turn right")
   {
     if (checkCmd("turn right"))
     {
-      pubGoalVel(0, 0, -angularSpeed);
+      pubGoalVel(0, -linearSpeed, 0);
     }
   }
   else if (cmd == "reset speed")
@@ -242,7 +242,7 @@ int main(int argc, char **argv)
   MyNodeHandle node;
   ros::Subscriber recogSub = node.subscribe("/recognizer/output", 1, recogCallback);
   authorPub = node.advertise<std_msgs::String>("/cmd_center/author", 1);
-  goalVelPub = node.advertise<geometry_msgs::Twist>("/goal_vel", 1);
+  goalVelPub = node.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
   goalVelMaskPub = node.advertise<ros_pcduino::TwistWithMask>("/goal_vel_mask", 1);
   speaker = node.advertise<std_msgs::String>("voice_syn", 10);
 

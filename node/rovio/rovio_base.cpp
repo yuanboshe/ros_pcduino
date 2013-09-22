@@ -7,7 +7,7 @@
 Motor motorA;
 Motor motorB;
 Motor motorC;
-double rateX, rateY, rateRear, rateFront;
+double rateX, rateY, rateRear, rateFront, sinAngle;
 double maxLinear, maxAngular, axialLenRate;
 
 void cmdVelCallback(const geometry_msgs::TwistConstPtr& msg)
@@ -16,18 +16,25 @@ void cmdVelCallback(const geometry_msgs::TwistConstPtr& msg)
   double tmp;
 
   // x
-  tmp = msg->linear.x * rateX;
+  double linearX = msg->linear.x;
+  if (linearX > maxLinear) linearX = maxLinear;
+  tmp = linearX * rateX;
   rotA -= tmp;
   rotB += tmp;
 
   // y
-  tmp = msg->linear.y * rateY;
+  double linearY = msg->linear.y;
+  if (linearY > maxLinear) linearY = maxLinear;
+  tmp = linearY * rateY;
+  rotC -= tmp;
+  tmp *= sinAngle;
   rotA += tmp;
   rotB += tmp;
-  rotC -= tmp / axialLenRate;
 
   // rotate
-  tmp = msg->angular.z * rateRear;
+  double angularZ = msg->angular.z;
+  if (angularZ > maxAngular) angularZ = maxAngular;
+  tmp = angularZ * rateRear;
   rotC += tmp;
   tmp *= axialLenRate;
   rotA += tmp;
@@ -51,7 +58,7 @@ int main(int argc, char **argv)
   int motorAEn = node.getParamEx("rovio_base/motorAEn", 3);
   int motorA1 = node.getParamEx("rovio_base/motorA1", 4);
   int motorA2 = node.getParamEx("rovio_base/motorA2", 5);
-  int motorBEn = node.getParamEx("rovio_base/motorBEnl", 6);
+  int motorBEn = node.getParamEx("rovio_base/motorBEn", 6);
   int motorB1 = node.getParamEx("rovio_base/motorB1", 7);
   int motorB2 = node.getParamEx("rovio_base/motorB2", 8);
   int motorCEn = node.getParamEx("rovio_base/motorCEn", 9);
@@ -66,10 +73,14 @@ int main(int argc, char **argv)
   motorA.initMotor(motorAEn, motorA1, motorA2);
   motorB.initMotor(motorBEn, motorB1, motorB2);
   motorC.initMotor(motorCEn, motorC1, motorC2);
+  motorA.run(0);
+  motorB.run(0);
+  motorC.run(0);
 
   // calc rates
   rateX = 1 / (cos(biasAngle) * maxLinear);
-  rateY = 1 / (sin(biasAngle) * maxLinear);
+  rateY = 1 / maxLinear;
+  sinAngle = sin(biasAngle);
   rateRear = 1 / maxAngular;
 
   ros::spin();

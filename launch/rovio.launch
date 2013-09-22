@@ -1,0 +1,5 @@
+<launch>
+  <include file="$(find ros_pcduino)/launch/rovio/rovio_cmd_center.launch" />
+  <include file="$(find ros_pcduino)/launch/rovio/rovio_follower.launch" />
+  <include file="$(find ros_pcduino)/launch/rovio/rovio_base.launch" />
+</launch>

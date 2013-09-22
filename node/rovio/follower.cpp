@@ -121,12 +121,12 @@ int main(int argc, char **argv)
   // init ros
   ros::init(argc, argv, "follower");
   MyNodeHandle node;
-  ros::Subscriber depthRawSub = node.subscribe("/depth/image_raw", 10, depthCallback);
-  ros::Subscriber commandSub = node.subscribe("/cmd_center/author", 100, commandCallback);
-  ros::Subscriber frontSub = node.subscribe("/sonar/front", 100, frontCallback);
-  ros::Subscriber leftSub = node.subscribe("/sonar/left", 100, leftCallback);
-  ros::Subscriber rightSub = node.subscribe("/sonar/right", 100, rightCallback);
-  cmdVelPub = node.advertise<geometry_msgs::Twist>("/goal_vel", 100);
+  ros::Subscriber depthRawSub = node.subscribe("/depth/image_raw", 1, depthCallback);
+  ros::Subscriber commandSub = node.subscribe("/cmd_center/author", 1, commandCallback);
+  ros::Subscriber frontSub = node.subscribe("/sonar/front", 1, frontCallback);
+  ros::Subscriber leftSub = node.subscribe("/sonar/left", 1, leftCallback);
+  ros::Subscriber rightSub = node.subscribe("/sonar/right", 1, rightCallback);
+  cmdVelPub = node.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 
   // get params
   ROS_INFO("follower get params:");
