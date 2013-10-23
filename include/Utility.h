@@ -17,5 +17,6 @@ public:
 
 	// pcduino_project for depth info
 	Point3f calcWeightCneter(Mat_<uint16_t> depthImg, Mat_<float>& wMat, float range[2], int minPoints = 500, float maxWeight = 3, int weightMarggin = 0);
+	Point3f calcWeightCneter2(Mat_<uint16_t> depthImg, Mat_<float>& wMat, float range[2], int minPoints = 500, float maxWeight = 3, int weightMarggin = 0);
 	float getMinDepth(Mat_<uint16_t> depthImg, float depthMargin);
 };

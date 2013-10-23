@@ -307,6 +307,67 @@ Point3f Utility::calcWeightCneter(Mat_<uint16_t> depthImg, Mat_<float>& wMat, fl
   return center;
 }
 
+Point3f Utility::calcWeightCneter2(Mat_<uint16_t> depthImg, Mat_<float>& wMat, float range[2], int minPoints, float maxWeight, int weightMarggin)
+{
+  Point3f center;
+
+  // param
+  float minRange = range[0];
+  float maxRange = range[1];
+  int rows = depthImg.rows;
+  int cols = depthImg.cols;
+  int cameraDepthMargin = 10;
+
+  // init
+  float rangeLen = maxRange - minRange;
+  assert(rangeLen > 0);
+  wMat.create(rows, cols); // weight mat
+
+  // calc weight
+  float wSum = 0;
+  double xSum, ySum, zSum;
+  xSum = ySum = zSum = 0;
+  int pointsSum = 0;// points sum which in the range
+  for (int i = 0; i < rows; i++)
+  {
+    uint16_t* pDepthRow = depthImg.ptr<uint16_t>(i);
+    float* pwMatRow = wMat.ptr<float>(i);
+    for (int j = weightMarggin; j < cols - weightMarggin; j++)
+    {
+      int z = pDepthRow[j]; // depth of current point
+      double w = 0;// weight of current point
+      if (z > cameraDepthMargin && z < maxRange)// if z in the range, calc the w
+      {
+        if (z < minRange) z = minRange;
+        w = (1 - (double)(z - minRange) / rangeLen) * maxWeight;
+        wSum += w;
+        xSum += j * w;
+        ySum += i * w;
+        zSum += z * w;
+        pointsSum++;
+      }
+      pwMatRow[j] = w;
+    }
+  }
+
+  // calc center
+  if (pointsSum > minPoints)
+  {
+    center.x = xSum / wSum;
+    center.y = ySum / wSum;
+    center.z = zSum / wSum;
+
+    center.x = (center.x - cols / 2) / (cols / 2 - weightMarggin);
+    center.y = (center.y - rows / 2) / (rows / 2);
+  }
+  else
+  {
+    center = Point3f(0, 0, 0);
+  }
+
+  return center;
+}
+
 /**
  * margin: will not calculate the depth smaller than margin
  */

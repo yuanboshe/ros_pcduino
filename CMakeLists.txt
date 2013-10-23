@@ -72,18 +72,17 @@ include_directories(include
 )
 
 ## Common libs
-add_library(csvparser src/csvparser.cpp)
-add_library(Utility src/Utility.cpp)
+#add_library(csvparser src/csvparser.cpp)
+#add_library(Utility src/Utility.cpp)
+add_library(ServoController src/ServoController.cpp)
 
 ## Sensors
-add_library(sr04 sensor/SR04.cpp)
-target_link_libraries(sr04 ${c_env_dir}/libarduino.a)
-add_library(motor sensor/Motor.cpp)
-target_link_libraries(motor ${c_env_dir}/libarduino.a)
-
-## Add cmake target dependencies of the executable/library
-## as an example, message headers may need to be generated before nodes
-#add_dependencies(sr04 ${c_env_dir}/libarduino.a)
+#add_library(sr04 sensor/SR04.cpp)
+#target_link_libraries(sr04 ${c_env_dir}/libarduino.a)
+#add_library(motor sensor/Motor.cpp)
+#target_link_libraries(motor ${c_env_dir}/libarduino.a)
+add_library(servo32 sensor/Servo32.cpp)
+target_link_libraries(servo32 ${c_env_dir}/libarduino.a)
 
 ## Test
 #add_executable(test_camera test/test_camera.cpp)
@@ -98,6 +97,12 @@ target_link_libraries(motor ${c_env_dir}/libarduino.a)
 #target_link_libraries(sonar3 sr04 ${catkin_LIBRARIES})
 #add_executable(vel_center node/common/vel_center.cpp)
 #target_link_libraries(vel_center ${catkin_LIBRARIES})
+#add_executable(pantilt node/common/pantilt.cpp)
+#target_link_libraries(pantilt Utility ServoController servo32 ${catkin_LIBRARIES})
+#add_executable(depth_center node/common/depth_center.cpp)
+#target_link_libraries(depth_center Utility ${catkin_LIBRARIES})
+add_executable(hand6dof node/common/hand6dof.cpp)
+target_link_libraries(hand6dof ServoController servo32 ${catkin_LIBRARIES})
 
 ## Rovio nodes
 #add_executable(rovio_base node/rovio/rovio_base.cpp)
@@ -105,8 +110,8 @@ target_link_libraries(motor ${c_env_dir}/libarduino.a)
 #add_executable(rovio_cmd_center node/rovio/cmd_center.cpp)
 #add_dependencies(rovio_cmd_center ${PROJECT_NAME}_gencpp)
 #target_link_libraries(rovio_cmd_center csvparser ${catkin_LIBRARIES})
-add_executable(rovio_follower node/rovio/follower.cpp)
-target_link_libraries(rovio_follower Utility ${catkin_LIBRARIES})
+#add_executable(rovio_follower node/rovio/follower.cpp)
+#target_link_libraries(rovio_follower Utility ${catkin_LIBRARIES})
 #add_executable(rovio_avoidance node/rovio/avoidance.cpp)
 #target_link_libraries(rovio_avoidance Utility ${catkin_LIBRARIES})
 
